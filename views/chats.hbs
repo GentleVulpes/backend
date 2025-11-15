@@ -1,38 +1,64 @@
-<!DOCTYPE html>
 <html lang="en">
-<head>
-       <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/style.css">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/style.css" />
     <title>Chat</title>
-</head>
-<body>
-    <main class="bg-support-color-03 p-xl w-33-percent flex flex-columns align-items-end">
-        <div class="mx-auto flex flex-columns">
-            <h1 class="color-base-color-01 font-family-title text-xl my-sm">{{user.name}}</h1>
-            <a class="button2 font-family-title text-md" href="/profile">EDIT PROFILE</a>
-        </div>
+  </head>
+  <body>
+    <header class="w-100-percent flex mb-xl bg-color-black">
+      <nav><a
+          href="/chats"
+          class="color-base-color-01 text-lg p-md font-family-title"
+        >HOME</a></nav>
+      <form action="/logout" method="get">
+        <button class="button" type="submit">LOGOUT</button>
+      </form>
+    </header>
+    <main
+      class="bg-support-color-03 p-xl w-33-percent flex flex-columns align-items-end"
+    >
+      <div class="mx-auto flex flex-columns">
+        <h1
+          class="color-base-color-01 font-family-title text-xl my-sm"
+        >{{user.name}}</h1>
+        <a class="button2 font-family-title text-md" href="/profile">EDIT
+          PROFILE</a>
+      </div>
 
-        <div class="mt-xxl">
-            <h2 class="color-base-color-01 font-family-title text-medium text-lg">Contacts</h2>
-              <ul class="mt-lg flex flex-columns gap-sm w-100-percent">
-                {{#each chatContact}}
-                <li class="flex gap-xs w-100-percent">
-                    <a class="contactLink color-base-color-02 text-thin text-md w-60-percent" href="/chats/{{this}}">{{this}} </a>
-                    <form action="/chats" method="post">
-                    <input type="hidden" name="contactName" value="{{this}}">
-                     <button id="removeButton" class="w-40-percent" type="submit">REMOVE CONTACT</button>
-                    </form>
-                </li>
-                {{/each}}
-            </ul>
-            
-            <a href="/chats/addContact" class="button w-100-percent mt-lg">ADD CONTACT</a>
-        </div>
-      
+      <div class="mt-xxl">
+        <h2
+          class="color-base-color-01 font-family-title text-medium text-lg"
+        >Contacts</h2>
+        <ul class="mt-lg flex flex-columns gap-sm w-100-percent">
+          {{#each chatContact}}
+            <li class="flex gap-xs w-100-percent">
+              <a
+                class="contactLink color-base-color-02 text-thin text-md w-60-percent"
+                href="/chats/{{this}}"
+              >{{this}} </a>
+              <form action="/chats" method="post">
+                <input type="hidden" name="contactName" value="{{this}}" />
+                <button
+                  id="removeButton"
+                  class="w-40-percent"
+                  type="submit"
+                >REMOVE CONTACT</button>
+              </form>
+            </li>
+          {{/each}}
+        </ul>
+
+        <a href="/chats/addContact" class="button w-100-percent mt-lg">ADD
+          CONTACT</a>
+      </div>
+
     </main>
-</body>
+  </body>
 </html>

@@ -476,6 +476,21 @@ app.use(
       }
     );
 
+    app.get('/logout', Authentication.validateSession, (req, res) => {
+    try {
+        req.session.destroy((error) => {
+            if (error) {
+                Log.writeError("Error during logout (session destroy):", error); 
+                return res.redirect('/chats'); // Volta para chats se houver erro crítico
+            }
+            res.redirect('/'); 
+        });
+    } catch(error) {
+        Log.writeError("Error during logout:", error);
+        res.redirect('/');
+    }
+});
+
     app.listen(port, () => {
       console.log(`Running server at port ${port}`);
     });

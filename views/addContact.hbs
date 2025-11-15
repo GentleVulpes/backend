@@ -1,33 +1,58 @@
-<!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/style.css">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/style.css" />
     <title>Login</title>
-</head>
-<body>
-    <form class="flex flex-columns bg-support-color-02 p-xl"  action="/chats/addContact" method="post">
+  </head>
+  <body>
+    <header class="w-100-percent flex mb-xl bg-color-black">
+      <nav><a
+          href="/chats"
+          class="color-base-color-01 text-lg p-md font-family-title"
+        >HOME</a></nav>
+      <form action="/logout" method="get">
+        <button class="button" type="submit">LOGOUT</button>
+      </form>
+    </header>
+    <form
+      class="flex flex-columns bg-support-color-02 p-xl"
+      action="/chats/addContact"
+      method="post"
+    >
 
-        <h1 class="color-base-color-01 font-family-title text-xl text-bold">CONTACT</h1>
+      <h1
+        class="color-base-color-01 font-family-title text-xl text-bold"
+      >CONTACT</h1>
 
-        <div class="flex flex-columns mt-md">
-            <label class="color-white font-family-title text-lg mb-sm text-bold"  for="name">Name</label>
-            <input class="bg-support-color-03 p-xxs" type="text" name="name" id="name">
-            {{#if error}}
-                <span class="color-error-color-02" id="nameError">{{error}}</span>
-            {{/if}}
-             {{#if sucess}}
-                <span class="color-base-color-01" id="nameSucess">{{sucess}}</span>
-            {{/if}}
-        </div>
+      <div class="flex flex-columns mt-md">
+        <label
+          class="color-white font-family-title text-lg mb-sm text-bold"
+          for="name"
+        >Name</label>
+        <input
+          class="bg-support-color-03 p-xxs"
+          type="text"
+          name="name"
+          id="name"
+        />
+        {{#if error}}
+          <span class="color-error-color-02" id="nameError">{{error}}</span>
+        {{/if}}
+        {{#if sucess}}
+          <span class="color-base-color-01" id="nameSucess">{{sucess}}</span>
+        {{/if}}
+      </div>
 
-        <button class="button mt-lg" type="submit">ADD NEW CONTACT</button>
+      <button class="button mt-lg" type="submit">ADD NEW CONTACT</button>
     </form>
-    {{!-- <script src="/javascript/login.js" type="module"></script> --}}
+    {{! <script src="/javascript/login.js" type="module"></script> }}
 
-</body>
+  </body>
 </html>
