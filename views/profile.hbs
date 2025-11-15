@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body>
+
+    <form class="flex flex-columns bg-support-color-02 p-xl rounded-sm" action="/profile" method="post">
+        <h1 class="color-base-color-01 font-family-title text-xl text-bold">PROFILE</h1>
+
+        <div class="flex flex-columns mt-md">
+            <label class="color-white font-family-title text-lg mb-sm text-bold" for="name">Name</label>
+            <input class="bg-support-color-03 p-xxs" type="text" name="name" id="name" value="{{user.name}}">
+            <span class="error-color-02 {{#unless nameError}}hidden{{/unless}}" id="nameError">
+                {{#if nameError}}
+                    {{nameError}}
+                {{else}}
+                    error
+                {{/if}}
+            </span>
+            <span class="sucess-color-02 {{#unless sucess}}hidden{{/unless}}" id="namesucess">
+                {{#if sucess}}
+                    {{sucess}}
+                {{else}}
+                    
+                {{/if}}
+            </span>
+        </div>
+
+        <div class="flex flex-columns mt-md">
+            <label class="color-white font-family-title text-lg mb-sm text-bold" for="password">Password</label>
+            <input class="bg-support-color-03 p-xxs" type="password" name="password" id="password" value="{{user.password}}">
+            <span class="error-color-02 {{#unless passwordError}}hidden{{/unless}}" id="nameError">
+                {{#if passwordError}}
+                    {{passwordError}}
+                {{else}}
+                    error
+                {{/if}}
+            </span>
+             <span class="sucess-color-02 {{#unless sucess}}hidden{{/unless}}" id="passwordsucess">
+                {{#if sucess}}
+                    {{sucess}}
+                {{else}}
+                    
+                {{/if}}
+            </span>
+        </div>
+        
+        <button id="saveButton" class="button mt-xl" type="submit">SAVE</button>
+    </form>
+
+    <form action="/profile/remove" method="post">
+        <button id="removeButton" class="mt-md" type="submit">DELETE ACCOUNT</button>
+    </form>
+
+</body>
+</html>

@@ -87,19 +87,6 @@ class Message {
         Log.writeError("Error reading message of id " + messageId + ":", error);
         throw error;
       } else {
-        console.log(
-          "Message id: " +
-            foundMessage._id +
-            "\nMessage chat id: " +
-            foundMessage.chatId +
-            "\nMessage sender id: " +
-            foundMessage.senderId +
-            "\nMessage content: " +
-            foundMessage.content +
-            "\nMesssage time: " +
-            foundMessage.time +
-            "\n"
-        );
         Log.writeInformation("Reading message of the id: " + messageId);
       }
     } catch (error) {
@@ -137,19 +124,6 @@ class Message {
 
       // Mostrar cada mensagem encontrada
       foundMessages.forEach((msg) => {
-        console.log(
-          "Message id: " +
-            msg._id +
-            "\nMessage chat id: " +
-            msg.chatId +
-            "\nMessage sender id: " +
-            msg.senderId +
-            "\nMessage content: " +
-            msg.content +
-            "\nMessage time: " +
-            msg.time +
-            "\n"
-        );
         Log.writeInformation("Reading message id: " + msg._id);
       });
     } catch (error) {
@@ -158,6 +132,30 @@ class Message {
         error
       );
       throw error;
+    }
+  }
+
+  static async readMessagesByChatId(database, chatId) {
+    try {
+      if(!database){
+        Log.writeError('Error reading messages by chat id:', new Error('invalid database'));
+        return false;
+      }
+       if(!chatId){
+        Log.writeError('Error reading messages by chat id:', new Error('invalid chatId'));
+        return false;
+      }
+  
+      const messages = await database
+          .collection("messages")
+          .find({ chatId: chatId })
+          .sort({ time: 1 }) 
+          .toArray();
+       return messages;
+    }
+    catch(error) {
+      Log.writeError('Error reading messages by chat id:', error);
+      return false;
     }
   }
 
@@ -218,7 +216,6 @@ class Message {
           "and the receiver id " +
           receiverId
       );
-      console.log(messages);
       return;
     } catch (error) {
       Log.writeError(
@@ -267,7 +264,7 @@ class Message {
           "Error removing messages by chat id and sender id:",
           error
         );
-        throw error;
+        return false;
       }
 
       if (!senderId || senderId.trim() === "") {
@@ -276,7 +273,7 @@ class Message {
           "Error removing messages by chat id and sender id:",
           error
         );
-        throw error;
+        return false;
       }
 
       const result = await database.collection("messages").deleteMany({
@@ -292,14 +289,40 @@ class Message {
           " and sender id " +
           senderId
       );
+      return true;
     } catch (error) {
       Log.writeError(
         "Error removing messages by chat id and sender id:",
         error
       );
-      throw error;
+      return false;
     }
   }
+
+  static async deleteMessagesBySenderId(database, senderId) {
+    try{
+      if(!database) {
+        Log.writeError('Error deleting message: ', new Error('invalid database'));
+        return false;
+      }
+      else if(!senderId) {
+        Log.writeError('Error deleting message: ', new Error('invalid senderId'));
+        return false;
+      }
+      else {
+        const result = await database.collection("messages").deleteMany({
+          senderId: senderId,
+        });
+        return true;
+
+      }
+    }
+    catch(error) {
+      Log.writeError('Error deleting message: ', error);
+      return false;
+    }
+  }
+
 }
 
 module.exports = Message;

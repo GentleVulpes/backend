@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body>
+    <main class="w-100-percent">
+        <ul class="w-100-percent flex flex-columns">
+          {{#each messages}}
+          
+            <li class="flex flex-columns bg-support-color-01 mb-lg w-50-percent p-md">
+                <h4 class="color-base-color-01 mb-md text-lg font-family-title">
+                    {{this.senderName}}
+                </h4>
+                <p class="color-white font-family-text">{{this.content}}</p>
+            </li>
+            {{/each}}
+
+        </ul>
+    </main>
+    <section class="w-100-percent">
+        <form class="flex flex-columns w-60-percent align-items-end" action="/chats/{{contactName}}" method="post">
+            <textarea class="w-100-percent bg-support-color-03" id="messageBox" name="messageBox" rows="8"></textarea>
+            <button class="button mt-md" type="submit">SEND MESSAGE</button>
+        </form>
+    </section>
+
+
+</body>
+</html>

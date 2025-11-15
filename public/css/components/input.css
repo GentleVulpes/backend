@@ -1,0 +1,14 @@
+input {
+    outline: none;
+    border-style: solid;
+    border-color: transparent;
+    border-width: var(--xxs);
+    border-radius: 3px;
+}
+
+input:focus {
+    border-style: solid;
+    border-color: var(--baseColour01);
+    border-width: var(--xxs);
+}
+

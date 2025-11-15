@@ -1,0 +1,36 @@
+@import './general/colour.css';
+@import './general/size.css';
+@import './general/display.css';
+@import './general/padding.css';
+@import './general/margin.css';
+@import './general/width.css';
+@import './general/fontFamly.css';
+@import './general/fontSize.css';
+@import './general/fontWeight.css';
+
+@import './components/input.css';
+@import './components/button.css';
+@import './components/removeButton.css';
+@import './components/button2.css';
+@import './components/contactLink.css';
+@import './components/form.css';
+
+* {
+    box-sizing: border-box;
+    text-decoration: none;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    height: 100%;
+}
+
+body {
+    background-color: black;
+    display: flex;
+    flex-flow: column;
+    justify-content: center;
+    align-items: center;
+}

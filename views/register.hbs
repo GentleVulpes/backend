@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <title>Register</title>
+</head>
+<body>
+    <form class="flex flex-columns bg-support-color-02 p-xl" action="/register" method="post">
+
+         <h1 class="color-base-color-01 font-family-title text-xl text-bold">REGISTER</h1>
+
+        <div class="flex flex-columns mt-md">
+            <label class="color-white font-family-title text-lg mb-sm text-bold" for="name">Name</label>
+            <input class="bg-support-color-03 p-xxs color-white" type="text" name="name" id="name" placeholder="type your name here" required>
+            <span class="error-color-02 {{#unless nameError}}hidden{{/unless}}" id="nameError">
+                {{#if nameError}}
+                    {{nameError}}
+                {{else}}
+                    error
+                {{/if}}
+            </span>
+        </div>
+
+        <div class="flex flex-columns mt-md">
+            <label class="color-white font-family-title text-lg mb-sm text-bold" for="password">Password</label>
+            <input class="bg-support-color-03 p-xxs color-white" type="password" name="password" id="password" placeholder="type your password here" required>
+             <span class="error-color-02 {{#unless passwordError}}hidden{{/unless}}" id="passwordError">
+                {{#if passwordError}}
+                    {{passwordError}}
+                {{else}}
+                    error
+                {{/if}}
+            </span>
+        </div>
+
+        <div class="flex flex-columns mt-md">
+            <label class="color-white font-family-title text-lg mb-sm text-bold" for="confirmation">Confirm your password</label>
+            <input class="bg-support-color-03 p-xxs color-white" type="password" name="confirmation" id="confirmation" placeholder="type your password again" required>
+            <span class="error-color-02 {{#unless confirmationError}}hidden{{/unless}}" id="confirmationError">
+                {{#if confirmationError}}
+                    {{confirmationError}}
+                {{else}}
+                    error
+                {{/if}}
+            </span>
+
+        </div>
+
+        <button id="registerButton" class="button mt-xl" type="submit">SIGN IN</button>
+    </form>
+
+    {{!-- <script src="/javascript/register.js" type="module"></script> --}}
+
+</body>
+</html>

@@ -1,224 +1,485 @@
 const http = require("http");
-const { MongoClient } = require("mongodb");
-const User = require("./models/User");
+const express = require("express");
+const session = require("express-session");
+const Authentication = require("./middlewares/Authentication");
+const path = require("path");
+const app = express();
+const port = 3000;
 const Chat = require("./models/Chat");
-const Message = require("./models/Message");
+const { MongoClient, ObjectId } = require("mongodb");
+const User = require("./models/User");
+const { error } = require("console");
 const Log = require("./models/Log");
+const Message = require("./models/Message");
 
-/*OBSERVACOES
-professor, devido a forma que organizei o codigo com diversos throw error, nao e possivel testar ele de maneira muito fluida como eu gostaria. peço desculpas pelo inconveniente, quando pensei no projeto pensei em interrupcoes bruscas mas esqueci-me da parte dos testes.*/
+app.use(express.static(path.join(__dirname, "public")));
+app.use(express.urlencoded({ extended: true }));
+app.set("views", path.join(__dirname, "views"));
+app.set("view engine", "hbs");
+
+app.use(
+  session({
+    secret: "cada-escolha-uma-renuncia",
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false },
+  })
+);
 
 (async () => {
-  let conn;
-
   try {
-    conn = await MongoClient.connect("mongodb://localhost:27017");
+    const conn = await MongoClient.connect("mongodb://localhost:27017");
     const database = conn.db("messager");
 
-    console.log("\nIniciando reset das colecoes");
-    try {
-      await database.collection("users").deleteMany({});
-    } catch (e) {
-      console.error(e);
-    }
-    try {
-      await database.collection("chats").deleteMany({});
-    } catch (e) {
-      console.error(e);
-    }
-    try {
-      await database.collection("messages").deleteMany({});
-    } catch (e) {
-      console.error(e);
-    }
-    console.log("Colecoes limpas\n");
-
-    console.log("Testes da classe user");
-    const runInSafeMode = async (fn, ...args) => {
-      try {
-        await fn(...args);
-      } catch (e) {
-        console.error("Erro encontrado " + e.message);
+    app.get("/", (req, res) => {
+      if (req.session.user) {
+        res.redirect("/chats");
+      } else {
+        res.render("home");
       }
-    };
+    });
 
-    await runInSafeMode(User.createUser, database, "Alice", "123");
-    await runInSafeMode(User.createUser, database, "Bruno", "456");
-    await runInSafeMode(User.createUser, database, "Carlos", "789");
-    await runInSafeMode(User.createUser, database, "Daniel", "000");
+    app.get("/login", (req, res) => {
+      res.render("login");
+    });
 
-    await runInSafeMode(User.readAllUsers, database);
+    app.post("/login", async (req, res) => {
+      const { name, password } = req.body;
 
-    const userIds = (await runInSafeMode(User.getAllUsersIds, database)) || [];
-    console.log("\nids dos usuarios cadastrados: " + userIds);
+      if (!name) {
+        const errorMessage = new Error("username cannot be left empty!");
+        Log.writeError("Error while trying to register: ", errorMessage);
+        return res.render("login", { nameError: errorMessage.message });
+      }
 
-    if (userIds[0])
-      await runInSafeMode(User.readUserById, database, userIds[0]);
-    await runInSafeMode(
-      User.readUserByNameAndPassword,
-      database,
-      "Bruno",
-      "456"
+      if (!password) {
+        const errorMessage = new Error("password cannot be left empty!");
+        Log.writeError("Error while trying to register: ", errorMessage);
+        return res.render("login", { passwordError: errorMessage.message });
+      }
+
+      const user = await User.readUserByNameAndPassword(
+        database,
+        name,
+        password
+      );
+
+      if (user) {
+        req.session.user = user;
+        res.redirect("/chats");
+      } else {
+        const errorMessage = new Error("Wrong username or password");
+        Log.writeError("Login Error: ", errorMessage);
+        res.render("login", {
+          nameError: errorMessage.message,
+          passwordError: errorMessage.message,
+        });
+      }
+    });
+
+    app.get("/register", (req, res) => {
+      res.render("register");
+    });
+
+    app.post("/register", async (req, res) => {
+      const { name, password, confirmation } = req.body;
+
+      if (!name) {
+        const errorMessage = new Error("username cannot be left empty!");
+        Log.writeError("Error while trying to register: ", errorMessage);
+        return res.render("register", { nameError: errorMessage.message });
+      }
+
+      if (!password) {
+        const errorMessage = new Error("password cannot be left empty!");
+        Log.writeError("Error while trying to register: ", errorMessage);
+        return res.render("register", { passwordError: errorMessage.message });
+      }
+
+      if (!confirmation) {
+        const errorMessage = new Error("confirmation cannot be left empty!");
+        Log.writeError("Error while trying to register: ", errorMessage);
+        return res.render("register", {
+          confirmationError: errorMessage.message,
+        });
+      }
+
+      if (password !== confirmation) {
+        const errorMessage = new Error(
+          "password and confirmation doesnt match!"
+        );
+        Log.writeError("Error while trying to register: ", errorMessage);
+        return res.render("register", {
+          confirmationError: errorMessage.message,
+        });
+      }
+
+      const data = await User.createUser(database, name, password);
+
+      if (data) {
+        req.session.user = data;
+        res.redirect("/chats");
+      } else {
+        res.render("register", {
+          nameError: "this user name is already in use!",
+        });
+      }
+    });
+
+    app.get("/chats", Authentication.validateSession, async (req, res) => {
+      const currentUserId = req.session.user._id.toString();
+      const foundedChats = await Chat.readChatsById(database, currentUserId);
+
+      if (!foundedChats || foundedChats.length === 0) {
+        if (!foundedChats)
+          Log.writeError("Error reading chats of id " + currentUserId);
+        return res.render("chats", {
+          user: req.session.user,
+          chatContact: [],
+        });
+      }
+
+      let names = foundedChats.map(async (chat) => {
+        let contactId;
+
+        if (chat.user01Id.toString() === currentUserId) {
+          contactId = chat.user02Id;
+        } else {
+          contactId = chat.user01Id;
+        }
+        const foundedUser = await User.readUserById(database, contactId);
+        if (!foundedUser) {
+          Log.writeError(
+            "Error reading user by ID:",
+            new Error(`Contact ID ${contactId} not found.`)
+          );
+          return false;
+        }
+        return foundedUser;
+      });
+
+      //  names = foundedChats.map(async (chat)=> {
+      //   const foundedUser = await User.readUserById(database, chat.user02Id);
+      //   if (!foundedUser)
+      //     return false;
+      //   return foundedUser.name;
+      // });
+      names = await Promise.all(names);
+
+      let filteredNames = names.filter((name) => name !== false);
+      filteredNames = filteredNames.map((user) => user.name);
+      return res.render("chats", {
+        user: req.session.user,
+        chatContact: filteredNames,
+      });
+    });
+
+    app.post("/chats", Authentication.validateSession, async (req, res) => {
+      const { contactName } = req.body;
+      const currentUserId = req.session.user._id.toString();
+
+      const wasDeleted = await Chat.deleteChatByContact(
+        database,
+        currentUserId,
+        contactName
+      );
+
+      if (!wasDeleted) {
+        Log.writeError(
+          "Error deleting chat:",
+          new Error("deleteChatByContact returned false")
+        );
+      }
+      res.redirect("/chats");
+    });
+
+    app.get(
+      "/chats/addContact",
+      Authentication.validateSession,
+      async (req, res) => {
+        res.render("addContact");
+      }
     );
 
-    if (userIds[3])
-      await runInSafeMode(User.deleteUserById, database, userIds[3]);
-    if (userIds[0] && userIds[1])
-      await runInSafeMode(
-        User.deleteUsersByIds,
-        database,
-        userIds[0],
-        userIds[1]
-      );
-    await runInSafeMode(User.readAllUsers, database);
+    app.post(
+      "/chats/addContact",
+      Authentication.validateSession,
+      async (req, res) => {
+        try {
+          const { name } = req.body;
+          if (name === req.session.user.name) {
+            Log.writeError(
+              "Error when user are trying to add contact:",
+              new Error("user tried to add his own account")
+            );
+            return res.render("addContact", {
+              error: "you cant add your own account!",
+            });
+          }
 
-    console.log("\nTestes da classe chat");
-    await runInSafeMode(User.createUser, database, "Eva", "111");
-    await runInSafeMode(User.createUser, database, "Felipe", "222");
-    const refreshedUserIds =
-      (await runInSafeMode(User.getAllUsersIds, database)) || [];
+          const foundedContactUser = await User.readUserByName(database, name);
+          if (!foundedContactUser) {
+            Log.writeError(
+              "Error when user are trying to add contact:",
+              new Error("user not found")
+            );
+            return res.render("addContact", { error: "user not found!" });
+          }
+          const foundedContactUserId = foundedContactUser._id.toString();
+          const contactAlreadyExist = await Chat.chatExist(
+            database,
+            req.session.user._id,
+            foundedContactUserId
+          );
+          if (contactAlreadyExist) {
+            Log.writeError(
+              "Error when user are trying to add contact:",
+              new Error("user tried to add an existing contact")
+            );
+            return res.render("addContact", {
+              error: "contact already exist in your account!",
+            });
+          }
 
-    await runInSafeMode(Chat.deleteAllChats, database);
-    if (refreshedUserIds[0] && refreshedUserIds[1]) {
-      console.log(
-        "Criando chat entre " +
-          refreshedUserIds[0] +
-          " e " +
-          refreshedUserIds[1]
-      );
-      await runInSafeMode(
-        Chat.createChat,
-        database,
-        refreshedUserIds[0],
-        refreshedUserIds[1]
-      );
-    }
-    await runInSafeMode(Chat.readAllChats, database);
+          await Chat.createChat(
+            database,
+            req.session.user._id,
+            foundedContactUserId
+          );
+          res.render("addContact", {
+            sucess: `${name} was sucessful added to your contacts`,
+          });
+        } catch (error) {
+          Log.writeError(
+            "Error when user are trying to add contact:",
+            new Error("invalid entry!")
+          );
+          return res.render("addContact", { error: "cant add a new contact!" });
+        }
+      }
+    );
+    app.get(
+      "/chats/:contactName",
+      Authentication.validateSession,
+      async (req, res) => {
+        try {
+          const { contactName } = req.params;
+          const currentUser = req.session.user;
 
-    const chatIds = (await runInSafeMode(Chat.getAllChatsIds, database)) || [];
-    if (chatIds[0])
-      await runInSafeMode(Chat.readChatById, database, chatIds[0]);
-    if (refreshedUserIds[0])
-      await runInSafeMode(
-        Chat.readChatByUser01Id,
-        database,
-        refreshedUserIds[0]
-      );
-    if (refreshedUserIds[1])
-      await runInSafeMode(
-        Chat.readChatByUser02Id,
-        database,
-        refreshedUserIds[1]
-      );
+          const currentUserId = currentUser._id.toString();
 
-    if (chatIds[0])
-      await runInSafeMode(Chat.deleteChatById, database, chatIds[0]);
-    if (refreshedUserIds[0] && refreshedUserIds[1])
-      await runInSafeMode(
-        Chat.createChat,
-        database,
-        refreshedUserIds[0],
-        refreshedUserIds[1]
-      );
-    if (refreshedUserIds[0])
-      await runInSafeMode(
-        Chat.deleteChatsByUser01Id,
-        database,
-        refreshedUserIds[0]
-      );
-    if (refreshedUserIds[1])
-      await runInSafeMode(
-        Chat.deleteChatsByUser02Id,
-        database,
-        refreshedUserIds[1]
-      );
+          const contactUser = await User.readUserByName(database, contactName);
+          if (!contactUser) {
+            Log.writeError(
+              "Error reading user by name:",
+              new Error(`invalid name: ${contactName}`)
+            );
+            return res.redirect("/chats");
+          }
 
-    if (refreshedUserIds[0] && refreshedUserIds[1])
-      await runInSafeMode(
-        Chat.createChat,
-        database,
-        refreshedUserIds[0],
-        refreshedUserIds[1]
-      );
-    await runInSafeMode(Chat.readAllChats, database);
-    const finalChatIds =
-      (await runInSafeMode(Chat.getAllChatsIds, database)) || [];
+          const contactUserId = contactUser._id.toString();
 
-    console.log("\nTestes da classe message");
-    if (finalChatIds[0] && refreshedUserIds[0])
-      await runInSafeMode(
-        Message.createMessage,
-        database,
-        finalChatIds[0],
-        refreshedUserIds[0],
-        "Ola"
-      );
-    if (finalChatIds[0] && refreshedUserIds[1])
-      await runInSafeMode(
-        Message.createMessage,
-        database,
-        finalChatIds[0],
-        refreshedUserIds[1],
-        "Oi tudo bem"
-      );
-    if (finalChatIds[0] && refreshedUserIds[0])
-      await runInSafeMode(
-        Message.createMessage,
-        database,
-        finalChatIds[0],
-        refreshedUserIds[0],
-        "Tudo sim e voce"
-      );
+          const chat = await Chat.ReadChatByUsers(
+            database,
+            currentUserId,
+            contactUserId
+          );
 
-    if (refreshedUserIds[0])
-      await runInSafeMode(
-        Message.readMessagesBySenderId,
-        database,
-        refreshedUserIds[0]
-      );
-    if (refreshedUserIds[0] && refreshedUserIds[1])
-      await runInSafeMode(
-        Message.readMessagesBySenderAndReceiver,
-        database,
-        refreshedUserIds[0],
-        refreshedUserIds[1]
-      );
+          if (!chat) {
+            return res.redirect("/chats");
+          }
 
-    const messages = await database.collection("messages").find().toArray();
-    if (messages[0]?._id)
-      await runInSafeMode(
-        Message.deleteMessageById,
+          const currentChatId = chat._id.toString();
+
+          const messages =
+            (await Message.readMessagesByChatId(database, currentChatId)) || [];
+
+          if (!Array.isArray(messages)) {
+            Log.writeError(
+              "Error reading messages:",
+              new Error("readMessagesByChatId did not return a valid array.")
+            );
+            return res.redirect("/chats");
+          }
+
+          const messagesWithNames = messages.map((message) => {
+            const isMyMessage = message.senderId.toString() === currentUserId;
+
+            return {
+              content: message.content,
+              senderName: isMyMessage ? currentUser.name : contactUser.name,
+            };
+          });
+
+          return res.render("messages", {
+            contactName: contactName,
+            messages: messagesWithNames,
+            user: currentUser,
+          });
+        } catch (error) {
+          Log.writeError("Error loading chat/messages: ", error);
+          return res.redirect("/chats");
+        }
+      }
+    );
+
+    app.post(
+      "/chats/:contactName",
+      Authentication.validateSession,
+      async (req, res) => {
+        console.log("fui chamado (POST /chats/:contactName)");
+        const { contactName } = req.params;
+
+        const { messageBox } = req.body;
+
+        try {
+          if (!messageBox || messageBox.trim() === "") {
+            return res.redirect(`/chats/${contactName}`);
+          }
+
+          const currentUser = req.session.user;
+
+          const currentUserId = currentUser._id.toString();
+
+          const contactUser = await User.readUserByName(database, contactName);
+          if (!contactUser) {
+            Log.writeError(
+              "Error reading user by name:",
+              new Error(`invalid contact name: ${contactName}`)
+            );
+            return res.redirect("/chats");
+          }
+
+          const contactUserId = contactUser._id.toString();
+
+          let currentChat = await Chat.ReadChatByUsers(
+            database,
+            currentUserId,
+            contactUserId
+          );
+
+          if (!currentChat) {
+            console.log(
+              `Chat not found, creating new chat between ${currentUserId} and ${contactUserId}`
+            );
+            currentChat = await Chat.createChat(
+              database,
+              currentUserId,
+              contactUserId
+            );
+
+            if (!currentChat) {
+              Log.writeError(
+                "Error creating chat:",
+                new Error("Failed to create new chat")
+              );
+              return res.redirect("/chats");
+            }
+          }
+          const chatId = currentChat._id.toString();
+
+          await Message.createMessage(
+            database,
+            chatId,
+            currentUserId,
+            messageBox
+          );
+
+          res.redirect(`/chats/${contactName}`);
+        } catch (error) {
+          Log.writeError("Error creating messages: ", error);
+          res.redirect(`/chats/${contactName}?error=sendFailed`);
+        }
+      }
+    );
+
+    app.get("/profile", Authentication.validateSession, async (req, res) => {
+      res.render("profile", { user: req.session.user });
+    });
+
+    app.post("/profile", Authentication.validateSession, async (req, res) => {
+      const { name, password } = req.body;
+      if (!name) {
+        Log.writeError(
+          "Error updating user profile: ",
+          new Error("invalid name")
+        );
+        return res.render("profile", {
+          user: req.session.user,
+          nameError: "invalid name!",
+        });
+      }
+      if (!password) {
+        Log.writeError(
+          "Error updating user profile: ",
+          new Error("invalid password")
+        );
+        return res.render("profile", {
+          user: req.session.user,
+          passwordError: "invalid password!",
+        });
+      }
+
+      const result = await User.updateUserById(
         database,
-        messages[0]._id.toString()
+        req.session.user._id,
+        name,
+        password
       );
-    if (finalChatIds[0] && refreshedUserIds[0])
-      await runInSafeMode(
-        Message.removeMessagesByChatIdAndSenderId,
-        database,
-        finalChatIds[0],
-        refreshedUserIds[0]
-      );
+      if (!result) {
+        Log.writeError(
+          "Error updating user profile: ",
+          new Error("error while updating")
+        );
+        return res.render("profile", {
+          user: req.session.user,
+          error:
+            "the profile have been not updated, verify if name and password are correct",
+        });
+      } else {
+        Log.writeInformation(`Updating user ${name}`);
+        req.session.user.name = name;
+        req.session.user.password = password;
+        return res.render("profile", {
+          user: req.session.user,
+          sucess: "the profile have been sucessful updated",
+        });
+      }
+    });
 
-    const msgsLeft = await database.collection("messages").find().toArray();
-    console.log("\nMensagens restantes no banco: " + JSON.stringify(msgsLeft));
+    app.post(
+      "/profile/remove",
+      Authentication.validateSession,
+      async (req, res) => {
+        try {
+          const user = req.session.user;
+          const userId = user._id;
 
-    console.log("\nRemovendo todos os usuarios e chats restantes");
-    await runInSafeMode(User.deleteAllUsers, database);
-    await runInSafeMode(Chat.deleteAllChats, database);
+          await Message.deleteMessagesBySenderId(database, userId);
+          await Chat.deleteChatsByUser01Id(database, userId);
+          await Chat.deleteChatsByUser02Id(database, userId);
+          await User.deleteUserById(database, userId);
 
-    console.log("\nTestes finalizados");
+          req.session.destroy((error) => {
+            if (error) {
+              Log.writeError("Error removing account:", error);
+            }
+            res.redirect("/");
+          });
+        } catch (error) {
+          Log.writeError("Error removing account:", error);
+          res.render("profile", {
+            user: req.session.user,
+            error: "Account cannot be removed. try again",
+          });
+        }
+      }
+    );
+
+    app.listen(port, () => {
+      console.log(`Running server at port ${port}`);
+    });
   } catch (error) {
-    Log.writeError("Erro durante os testes", error);
-    console.error(error);
-  } finally {
-    if (conn) await conn.close();
-    console.log("\nConexao com o banco encerrada");
+    console.log(error);
   }
 })();
-
-const server = http.createServer((req, res) => {
-  res.statusCode = 200;
-  res.setHeader("Content-Type", "text/plain");
-  res.end("Conexao encerrada");
-});
-server.listen(8000);

@@ -1,0 +1,61 @@
+:root {
+        /* COLOURS */
+    --baseColour01: #60D07C;
+    --baseColour02: #66B57A;
+    --baseColour03: #5F906B;
+
+    --supportColour01: #4D4D4D;
+    --supportColour02: #333333;
+    --supportColour03: #272727;
+
+    --error-color-01:#D04B4B;
+    --error-color-02: #B74C4C;
+
+}
+
+ /* BACKGROUND COLORS */
+.bg-white { background-color: white; }
+.bg-black { background-color: black; }
+.bg-transparent { background-color: transparent; }
+
+.bg-error-color-01 { background-color: var(--error-color-01); }
+.bg-error-color-02 { background-color: var(--error-color-02); }
+
+.bg-base-color-01 { background-color: var(--baseColour01); }
+.bg-base-color-02 { background-color: var(--baseColour02); }
+.bg-base-color-03 { background-color: var(--baseColour03); }
+
+.bg-support-color-01 { background-color: var(--supportColour01); }
+.bg-support-color-02 { background-color: var(--supportColour02); }
+.bg-support-color-03 { background-color: var(--supportColour03); }
+
+
+/* COLORS */
+.color-white { color: white; }
+.color-black { color: black; }
+.color-transparent { color: transparent; }
+
+.color-error-color-01 { color: var(--error-color-01); }
+.color-error-color-02 { color: var(--error-color-02); }
+
+.color-base-color-01 { color: var(--baseColour01); }
+.color-base-color-02 { color: var(--baseColour02); }
+.color-base-color-03 { color: var(--baseColour03); }
+
+.color-support-color-01 { color: var(--supportColour01); }
+.color-support-color-02 { color: var(--supportColour02); }
+.color-support-color-03 { color: var(--supportColour03); }
+
+
+/* BORDER-COLOR */
+.border-coolor-white { border-color: white; }
+.border-coolor-black { border-color: black; }
+.border-coolor-transparent { border-color: transparent; }
+
+.border-color-base-color-01 { border-color: var(--baseColour01); }
+.border-color-base-color-02 { border-color: var(--baseColour02); }
+.border-color-base-color-03 { border-color: var(--baseColour03); }
+
+.border-color-support-color-01 { border-color: var(--supportColour01); }
+.border-color-support-color-02 { border-color: var(--supportColour02); }
+.border-color-support-color-03 { border-color: var(--supportColour03); }

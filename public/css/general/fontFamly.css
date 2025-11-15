@@ -1,0 +1,13 @@
+:root {
+    --fontFamilyText: 'Montserrat';
+    --fontFamilyTitle: 'Lato';
+}
+
+/* FONT FAMILIES */
+.font-family-text {
+    font-family: var(--fontFamilyText);
+}
+
+.font-family-title {
+    font-family: var(--fontFamilyTitle);
+}

@@ -1,0 +1,15 @@
+#removeButton {
+    background-color: transparent;
+    padding: 8px 5px;
+    font-weight: 500;
+    color: var(--error-color-02);
+    font-size: var(--md);
+    letter-spacing: 0.1rem;
+    border: 2px solid var(--error-color-02);
+    cursor: pointer;
+}
+
+#removeButton:hover {
+    background-color: var(--error-color-02);
+    color: black;
+}

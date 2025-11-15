@@ -3,7 +3,7 @@ const Log = require("./Log");
 const User = require("./User");
 
 class Chat {
-  static async chatExist(database, user01Id, user02Id) {
+   static async chatExist(database, user01Id, user02Id) {
     let foundChat = await database.collection("chats").findOne({
       $or: [
         { user01Id: user01Id, user02Id: user02Id },
@@ -103,15 +103,6 @@ class Chat {
         Log.writeError("Error reading chat of id " + chatId + ":", error);
         throw error;
       } else {
-        console.log(
-          "Chat id: " +
-            foundChat._id +
-            "\nChat sender: " +
-            foundChat.user01Id +
-            "\nChat receiver id: " +
-            foundChat.user02Id +
-            "\n"
-        );
         Log.writeInformation("Finding chat of the id: " + chatId);
       }
     } catch (error) {
@@ -140,15 +131,6 @@ class Chat {
         );
         throw error;
       } else {
-        console.log(
-          "Chat id: " +
-            foundChat._id +
-            "\nChat user01 id: " +
-            foundChat.user01Id +
-            "\nChat user02 id: " +
-            foundChat.user02Id +
-            "\n"
-        );
         Log.writeInformation("Reading chat of the id: " + foundChat._id);
       }
     } catch (error) {
@@ -179,15 +161,6 @@ class Chat {
         );
         throw error;
       } else {
-        console.log(
-          "Chat id: " +
-            foundChat._id +
-            "\nChat user01 id: " +
-            foundChat.user01Id +
-            "\nChat user02 id: " +
-            foundChat.user02Id +
-            "\n"
-        );
         Log.writeInformation("Reading chat of the id: " + foundChat._id);
       }
     } catch (error) {
@@ -207,21 +180,36 @@ class Chat {
       findedUsers = await database.collection("chats").find().toArray();
       Log.writeInformation("Reading chats.");
       findedUsers.map((chat) => {
-        console.log(
-          "Chat id: " +
-            chat._id +
-            "\nChat user01 id: " +
-            chat.user01Id +
-            "\nChat user02 id: " +
-            chat.user02Id +
-            "\n"
-        );
       });
     } catch (error) {
       Log.writeError("Error finding chats:", error);
       throw error;
     }
     return;
+  }
+
+  static async readChatsById(database, userId) {
+    try{
+      if(!database) {
+        Log.writeError(`Error reading chat by id: `, new Error('invalid database'));
+        return false;
+      } else if (!userId) {
+        Log.writeError(`Error reading chat by id: `, new Error('invalid userId'));
+        return false;
+      } else {
+        const chats = await database.collection("chats").find({
+          $or: [
+            { user01Id: userId },
+            { user02Id: userId }
+          ]
+        }).toArray();
+        return chats;
+    }
+    
+    } catch(error) {
+      Log.writeError(`Error reading chat by id: `, error);
+      return false;
+    }
   }
 
   static async getAllChatsIds(database) {
@@ -237,6 +225,36 @@ class Chat {
     } catch (error) {
       Log.writeError("Error reading chats ids:", error);
       throw error;
+    }
+  }
+
+  static async ReadChatByUsers(database, user01Id, user02Id) {
+    try{
+      if(!database) {
+        Log.writeError('Error reading chat by users: ', new Error('invalid database'));
+        return false;
+      }
+      if(!user01Id) {
+        Log.writeError('Error reading chat by users: ', new Error('invalid user01Id'));
+        return false;
+      }
+      if(!user02Id) {
+        Log.writeError('Error reading chat by users: ', new Error('invalid user02Id'));
+        return false;
+      }
+
+      const result= await database.collection("chats").findOne({
+        $or: [
+          { user01Id: user01Id, user02Id: user02Id },
+          { user01Id: user02Id, user02Id: user01Id },
+        ],
+      });
+
+      return result;
+    }
+    catch(error){
+      Log.writeError('Error reading chat by users: ', new Error('cannot read chat by this users ids'));
+      return false;
     }
   }
 
@@ -274,29 +292,29 @@ class Chat {
       if (!user01Id || user01Id.trim() === "") {
         const error = new Error("user01 id cannot be empty or undefined.");
         Log.writeError("Error deleting chat:", error);
-        throw error;
+        return false;
       }
 
       deleteResult = await database
         .collection("chats")
         .deleteMany({ user01Id: user01Id });
-      if (deleteResult.deletedCount >= 1) {
+      if (deleteResult.deletedCount > 0) {
         Log.writeInformation("Deleting chats of sender id " + user01Id);
       } else {
         const error = new Error(
           "Chats of user01 id " + user01Id + " not found"
         );
         Log.writeError("Error deleting chats:", error);
-        throw error;
+        return false;
       }
     } catch (error) {
       Log.writeError(
         "Error deleting chats of user01 id " + user01Id + ":",
         error
       );
-      throw error;
+      return false;
     }
-    return;
+    return true;
   }
 
   static async deleteChatsByUser02Id(database, user02Id) {
@@ -306,29 +324,29 @@ class Chat {
       if (!user02Id || user02Id.trim() === "") {
         const error = new Error("user02 id cannot be empty or undefined.");
         Log.writeError("Error deleting chat:", error);
-        throw error;
+        return false;
       }
 
       deleteResult = await database
         .collection("chats")
         .deleteMany({ user02Id: user02Id });
-      if (deleteResult.deletedCount >= 1) {
+      if (deleteResult.deletedCount > 0) {
         Log.writeInformation("Deleting chats of sender id " + user02Id);
       } else {
         const error = new Error(
           "Chats of user02 id " + user02Id + " not found"
         );
         Log.writeError("Error deleting chats:", error);
-        throw error;
+        return false;
       }
     } catch (error) {
       Log.writeError(
         "Error deleting chats of user02 id " + user02Id + ":",
         error
       );
-      throw error;
+      return false;
     }
-    return;
+    return true;
   }
 
   static async deleteAllChats(database) {
@@ -346,6 +364,69 @@ class Chat {
       throw error;
     }
     return;
+  }
+
+  static async deleteChatBetweenUsers(database, user01Id, user02Id) {
+
+    try{
+      const { ObjectId } = require("mongodb");
+
+        const chatToDelete = await database.collection("chats").findOne({
+          $or: [
+            { user01Id: user01Id, user02Id: user02Id },
+            { user01Id: user02Id, user02Id: user01Id },
+          ],
+        });
+
+      if(chatToDelete) {
+        await database.collection("chats").deleteOne({ _id: chatToDelete._id });
+        Log.writeInformation(`Deleting chat between users`);
+        return true;
+      } 
+      else {
+        Log.writeError(`Error deleting chat between users`, new Error('chat doens exist or is invalid.'));
+        return false;
+      }
+    } catch(error) {
+      Log.writeError(`Error deleting chat between users:`, error)
+      return false;
+    }
+  }
+
+  static async deleteChatByContact(database, user01Id, contactName) {
+    try {
+      if(!database) {
+        Log.writeError(`Error deleting chat by contact:`, new Error('invalid database entry'));
+        return false;
+      }
+      else if(!user01Id) {
+        Log.writeError(`Error deleting chat by contact:`, new Error('invalid unser01Id entry'));
+        return false;
+      }
+
+      else if(!contactName){
+        Log.writeError(`Error deleting chat by contact:`, new Error('invalid contactName entry'));
+        return false;
+      }
+
+      else {
+        user01Id = user01Id.toString();
+        const contact = await User.readUserByName(database, contactName);
+        if(!contact) {
+          Log.writeError(`Error deleting chat by contact:`, new Error("contact name doesnt exist in this database"));
+          return false;
+        } else {
+          const contactId = contact._id.toString();
+          const contactIsRemoved = await this.deleteChatBetweenUsers(database, user01Id, contactId);
+          return contactIsRemoved;
+        }
+      }
+  }
+  catch(error) {
+    Log.writeError(`Error deleting chat by contact:`, error);
+    return false;
+  }
+
   }
 }
 

@@ -1,0 +1,15 @@
+.button2 {
+    position: relative;
+    color: var(--baseColour02);
+    font-weight: 700;
+    letter-spacing: 0.15rem;
+    text-decoration: none;
+    border:0.5px solid var(--baseColour02);
+    padding: var(--sm);
+    
+}
+
+.button2:hover {
+    color: var(--black);
+    background-color: var(--baseColour02);
+}

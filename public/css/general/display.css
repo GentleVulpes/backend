@@ -1,0 +1,46 @@
+.none { display: none; }
+.block { display: block; }
+.flex { display: flex; }
+.grid { display: grid; }
+
+.hidden { visibility: hidden ; }
+
+.flex-columns { flex-flow: column; }
+.flex-rows { flex-flow: row; }
+
+
+.grid-columns-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-columns-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-columns-4 { grid-template-columns: repeat(4, 1fr); }
+.grid-columns-5 { grid-template-columns: repeat(5, 1fr); }
+.grid-columns-6 { grid-template-columns: repeat(6, 1fr); }
+
+
+.gap-xxs { gap: var(--xxs); }
+.gap-xs { gap: var(--xs); }
+.gap-sm { gap: var(--sm); }
+.gap-md { gap: var(--md); }
+.gap-lg { gap: var(--lg); }
+.gap-xl { gap: var(--xl); }
+
+
+.justify-self-end { justify-self: end; } 
+.justify-self-start { justify-self: start; }
+
+.align-items-center {align-items: center;}
+.align-items-end {align-items: end;}
+
+.justify-content-center {justify-content: center;} 
+
+.self-end {
+    align-self: flex-end;
+    align-self: self-end;
+}
+
+.rounded-xxs { border-radius: 3px; }
+.rounded-xs { border-radius: 5px; }
+.rounded-sm { border-radius: 8px; }
+.rounded-md { border-radius: 13px; }
+.rounded-lg { border-radius: 21px; }
+.rounded-xl { border-radius: 34px; }
+

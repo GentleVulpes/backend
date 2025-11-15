@@ -1,0 +1,27 @@
+.button {
+    padding: 8px 5px;
+    font-weight: 500;
+    color: var(--baseColour02);
+    font-size: var(--md);
+    font-family: var(--fontFamilyText);
+    letter-spacing: 0.1rem;
+    border: 2px solid var(--baseColour02);
+    cursor: pointer;
+    text-decoration: none;
+    max-width: 100%;
+    min-width: 30%;
+    text-align: center;
+    background-color: transparent;
+}
+
+.button:hover {
+    background-color: var(--baseColour02);
+    padding: 8px 5px;
+    color: black;
+}
+
+.button:disabled {
+    background-color: gray;
+    color: white;
+    border-color: transparent;
+}

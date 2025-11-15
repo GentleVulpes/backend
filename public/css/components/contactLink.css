@@ -1,0 +1,9 @@
+.contactLink {
+    display: block;
+    padding: var(--sm) var(--sm);
+    background-color: var(--supportColour02);
+}
+
+.contactLink:hover {
+    background-color: var(--supportColour01);
+}
